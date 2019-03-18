@@ -36,6 +36,10 @@ We apply the following steps to harmonize data.
 
 Note: For this analysis we have removed number, we can use `replace_number()` from the `qdap` package to convert figures to words.
 
+### Visualization
+
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Twitter%20Sentiment/imagaes/visual.PNG)
+
 ### Create rectangular structure  - DTM
 
 Document-Term Matrix (DTM) is a matrix structure, where document text (each tweet in our analysis) are rows and terms (each word of tweets) are columns
@@ -73,11 +77,7 @@ Refer [here](http://www.learnbymarketing.com/methods/naive-bayes-classification/
 
 #### Confusion Matrix - Naive Bayes
 
-| ...       |...|    Actual    |
-|-----------|---|--------|-----|
-| Predicted |   | 0      | 1   |
-|           | 0 | 7204   | 238 |
-|           | 1 | 197    | 324 |  
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Twitter%20Sentiment/imagaes/conmatrixnb.PNG) 
 
 #### F1 Score - Niave Bayes
 
@@ -91,11 +91,7 @@ Random Forests work by training many Decision Trees on random subsets of the fea
 
 #### Confusion Matrix - RandomForest
 
-|           |   | Actual       |
-|-----------|---|--------|-----|
-| Predicted |   | 0      | 1   |
-|           | 0 | 6980   | 529 |
-|           | 1 | 421    | 33  |  
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Twitter%20Sentiment/imagaes/conmatrixrf.PNG) 
 
 #### F1 Score - RandomForest
 
