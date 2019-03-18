@@ -44,3 +44,64 @@ Table:-
 |-------|-----------|------------|--------------------|------------|
 | 1     | 200       | 100        | -100%              | -30%       |
 | 2     | 100       | 200        |  50%               |  30%       | 
+
+#### Visualizing S&P500 returns
+
+Note:
+Interactive visualization of S&P500 returns can be found in MS Excel file.
+
+### Expected Price
+
+Assuming stock returns follow a **normal distribution**.
+
+We can be 68% confidence (one standard deviation from average) that S&P500 price will be between 2,644 and 3,608, for next year.
+
+Alternatively, we can be 95% confidence (two standard deviation from average) that S&P500 price will be between 2,264 and 4,215, for next year.
+
+On similar line, we can be 68% confident that Coca-Cola stock will be between 41.3 and 62.2 and 95% confident that it will be between 33.7 and 76.4 for the next year.
+
+**Note**  
+Based on 5th October 2018; S&P @ 2,903 and KO @ 45.9.  
+For calculation see appendix.  
+
+### Market Risk
+
+A stock's beta is calculated as follows:
+
+$$ beta = \frac {Covariance(KO, \:S\&P500)} {Variance(SP)} $$
+
+For every one rupee change in S&P500, Coca-Cola changes by following percent. 
+
+Table:-  
+
+| Period    |   Beta  |
+|-----------|---------|
+| Daily     |   79%   |
+| Weekly    |   80%   |
+| Monthly   |   78%   |
+| Quarterly |   90%   |
+
+From the above table we conclude that Coca-Cola stock is less risky compared to overall market.
+
+**Note**  
+For calculation see appendix.  
+Interactive visualization of S&P500 returns can be found in MS Excel file.
+
+### Hypothesis Testing
+
+T-Test has the following three assumptions
+
+ - Normal Distribution - not standard normal distribution though.
+ - n greater than 30 - for both group
+ - Homoskadasticity (equal variance between group) - In Welch t-test this assumption is relaxed.
+ 
+### T-test
+
+On September 25, 1995 - NASDAQ started automated trading, thus giving birth to trading from desk. Therefore we split our dataset on this year and perform hypothesis testing for later period.
+
+To iterate:  
+Ha = If there is an increase in volume from previous period, on average the returns of S&P500 decreases.  
+Ho = If there is an decrease in volume from previous period, on average the returns of S&P500 increases.  
+<br>
+
+From above table we conclude that higher volume over different period tends to reduce returns, except on daily basis. Even for daily volume, since p-value is near significance level we can't confidently fail to reject null hypothesis.
