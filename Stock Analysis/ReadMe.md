@@ -47,6 +47,8 @@ Table:-
 
 #### Visualizing S&P500 returns
 
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Stock%20Analysis/image/stockreturns.PNG)
+
 Note:
 Interactive visualization of S&P500 returns can be found in MS Excel file.
 
@@ -103,5 +105,9 @@ To iterate:
 Ha = If there is an increase in volume from previous period, on average the returns of S&P500 decreases.  
 Ho = If there is an decrease in volume from previous period, on average the returns of S&P500 increases.  
 <br>
+
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Stock%20Analysis/image/normalasuumption.PNG)
+
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Stock%20Analysis/image/table.PNG)
 
 From above table we conclude that higher volume over different period tends to reduce returns, except on daily basis. Even for daily volume, since p-value is near significance level we can't confidently fail to reject null hypothesis.
