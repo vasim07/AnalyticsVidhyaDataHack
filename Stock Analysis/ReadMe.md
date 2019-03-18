@@ -70,7 +70,7 @@ For calculation see appendix.
 
 A stock's beta is calculated as follows:
 
-$$ beta = \frac {Covariance(KO, \:S\&P500)} {Variance(SP)} $$
+![](https://github.com/vasim07/AnalyticsVidhyaDataHack/blob/master/Stock%20Analysis/image/formula.PNG)
 
 For every one rupee change in S&P500, Coca-Cola changes by following percent. 
 
