@@ -77,15 +77,13 @@ Refer [here](http://www.learnbymarketing.com/methods/naive-bayes-classification/
 |-----------|---|--------|-----|
 | Predicted |   | 0      | 1   |
 |           | 0 | 7204   | 238 |
-|           | 1 | 197    | 324 |
+|           | 1 | 197    | 324 |  
 
 #### F1 Score - Niave Bayes
 
 |.metric | .estimate|
 |:-------|---------:|
 |f_meas  | 97.37712 |
-
-\newpage
 
 ### Randomforest model
 
@@ -97,7 +95,7 @@ Random Forests work by training many Decision Trees on random subsets of the fea
 |-----------|---|--------|-----|
 | Predicted |   | 0      | 1   |
 |           | 0 | 6980   | 529 |
-|           | 1 | 421    | 33  |
+|           | 1 | 421    | 33  |  
 
 #### F1 Score - RandomForest
 
