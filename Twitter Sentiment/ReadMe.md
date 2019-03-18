@@ -73,7 +73,7 @@ Refer [here](http://www.learnbymarketing.com/methods/naive-bayes-classification/
 
 #### Confusion Matrix - Naive Bayes
 
-|           |   | Actual       |
+| ...       |...|    Actual    |
 |-----------|---|--------|-----|
 | Predicted |   | 0      | 1   |
 |           | 0 | 7204   | 238 |
