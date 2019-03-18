@@ -1,0 +1,318 @@
+---
+title: "NiaveBayes"
+output: pdf_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Load Library and initial setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+library(tm); library(RTextTools); library(e1071); 
+library(tidyverse); library(caret); library(tidytext)
+# Library for parallel processing
+library(doMC)
+registerDoMC(cores=detectCores())
+
+```
+
+## Read csv files
+
+```{r read_data}
+
+df <- read.csv("train_E6oV3lV.csv", stringsAsFactors = FALSE) %>% 
+    mutate(tweet = iconv(tweet, from = "latin1", to = "ASCII", sub = ""))
+
+df_submission <- read.csv("test_tweets_anuFYb8.csv", stringsAsFactors = FALSE) %>% 
+    mutate(tweet = iconv(tweet, from = "latin1", to = "ASCII", sub = ""))
+
+# Suffle deck
+set.seed(42)
+df <- df[sample(nrow(df)), ]
+df <- df[sample(nrow(df)), ]
+
+df$label <- as.factor(df$label)
+
+```
+
+## Create Corpus
+
+A corpus is a large and structured set of texts. Data may have textual information along with some metadata such as time, user etc. A corpus format structure data in source and meta format.
+
+```{r, create_corpus}
+corpus <- VectorSource(df$tweet) %>% Corpus()
+corpus_submission <- VectorSource(df_submission$tweet) %>% Corpus()
+
+# Use content(corpus[[1]]) to get actual tweet
+# Use meta(corpus[[1]]) to get metadata pertaining to the tweet
+
+```
+
+## Data Cleaning
+
+We apply the following steps to harmonize data.
+
+-Convert all tweets to lower case
+-Remove puntuation
+-Remove numbers
+-Remove stopwords such as of, the etc.
+-Remove the word user and u - since @user in a tweet is a stopword
+-Remove extra space in between words or sentence.
+
+```{r, data_clean}
+
+# see qdap (with content_transformer) for more function
+corpus_clean <- corpus %>%
+    tm_map(content_transformer(tolower)) %>% 
+    tm_map(removePunctuation) %>%
+    tm_map(removeNumbers) %>%
+    tm_map(removeWords, stopwords(kind="en")) %>%
+    tm_map(removeWords, "user") %>% 
+    tm_map(removeWords, "u") %>% 
+    tm_map(stripWhitespace)
+
+corpus_clean_submission <- corpus_submission %>% 
+    tm_map(content_transformer(tolower)) %>%
+    tm_map(removePunctuation) %>%
+    tm_map(removeNumbers) %>%
+    tm_map(removeWords, stopwords(kind="en")) %>%
+    tm_map(removeWords, "user") %>% 
+    tm_map(removeWords, "u") %>% 
+    tm_map(stripWhitespace)
+
+```
+
+Note: For this analysis we have removed number, we can use `replace_number()` from the `qdap` package to convert figures to words.
+
+## Visualization
+
+Some exploratory textual analysis.
+
+```{r, data_visual}
+content(corpus_clean) %>% as_tibble() %>% 
+    select(value) %>% 
+    unnest_tokens(word, value) %>% 
+    count(word, sort = TRUE) %>% 
+    top_n(20) %>% 
+    mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() + 
+    coord_flip() + 
+    labs(x = "words", y = "frequency", title = "Top 20 words in the tweet")
+
+content(corpus_clean) %>% as_tibble() %>% 
+    select(value) %>% 
+    unnest_tokens(word, value) %>% 
+    count(word, sort = TRUE) %>% 
+    inner_join(get_sentiments("bing")) %>% 
+    filter(sentiment == "positive") %>% 
+    slice(1:20) %>% 
+    mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() + 
+    coord_flip() + 
+    labs(x = "words", y = "frequency", title = "Top 20 positive words")
+
+content(corpus_clean) %>% as_tibble() %>% 
+    select(value) %>% 
+    unnest_tokens(word, value) %>% 
+    count(word, sort = TRUE) %>% 
+    inner_join(get_sentiments("bing")) %>% 
+    filter(sentiment == "negative") %>% 
+    slice(1:20) %>% 
+    mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() + 
+    coord_flip() + 
+    labs(x = "words", y = "frequency", title = "Top 20 negative words")
+
+```
+
+## Create dataframe like structure  - DTM
+
+Document-Term Matrix (DTM) is a matrix structure where document text (each tweet in our analysis) are rows and terms (each word of tweets) are columns
+
+Example of DTM:-
+
+| Text (tweets)  | This | is | a | text | some | more |
+|----------------|------|----|---|------|------|------|
+| This is a text | 1    | 1  | 1 | 1    | 0    | 0    |
+| Some more text | 0    | 0  | 0 | 1    | 0    | 0    |
+
+
+```{r, create_dtm}
+dtm <- DocumentTermMatrix(corpus_clean)
+dtm_submission <- DocumentTermMatrix(corpus_clean_submission)
+```
+
+## Split data 
+
+Split data in train set (75%) and test set (25%).
+
+```{r, data_split}
+
+df_train <- df[1:24000,]
+df_test <- df[24000:31962,]
+
+dtm_train <- dtm[1:24000,]
+dtm_test <- dtm[24000:31962,]
+
+corpus_clean_train <- corpus_clean[1:24000]
+corpus_clean_test <- corpus_clean[24000:31962]
+
+```
+
+## Feature enginerring
+
+There are a total of `r{dim(dtm.train)[1]}` words in entire corpus. Most of the are just noise.
+
+Hence we will ignore words that occur less than 5 times in the entire corpus.
+
+```{r, f_enginering}
+#Ignore words where colsum is less than 5.
+fivefreq <- findFreqTerms(dtm_train, 5)
+
+dtm_train_small <- DocumentTermMatrix(corpus_clean_train, 
+                                      control=list(dictionary = fivefreq))
+
+dtm_test_small <- DocumentTermMatrix(corpus_clean_test, 
+                                     control=list(dictionary = fivefreq))
+
+dtm_test_submission <- DocumentTermMatrix(corpus_submission, 
+                                          control=list(dictionary = fivefreq))
+
+```
+
+Convert all varaibles to boolean, i.e everything is 1 or 0. 
+This model assumes for a **single tweet repeated word does not make any sense**.
+Eg:- Thank you very very very much means Thank you very much.
+
+```{r, convert_boolean}
+convert_count <- function(x) {
+    y <- ifelse(x > 0, 1, 0)
+    y <- factor(y, levels=c(0,1), labels=c("No", "Yes"))
+    y
+}
+
+train_small <- apply(dtm_train_small, 2, convert_count)
+test_small <- apply(dtm_test_small, 2, convert_count)
+test_sub_small <- apply(dtm_test_submission, 2, convert_count)
+
+```
+
+## Naive Bayes model
+
+Run Naive Bayes classifier model.
+
+```{r, NaiveBayesModel}
+dim(train_small)[1] == dim(df_train)[1]
+
+NBclassifier <- naiveBayes(train_small, df_train$label, laplace = 1)
+#saveRDS(NBclassifier, "naiveBayes.rds")
+```
+
+Note:- Refer DataSmart by Jill Foreman (Chapter 3) for a quick understanding of Naive Bayes algoritham
+
+### Confusion Matrix - NaiveBayes
+
+```{r, NaiveBayesPrediction}
+pred <- NBclassifier %>% predict(newdata=test_small)
+confusionMatrix(pred, df_test$label)
+
+```
+ 
+### F1 Score - NiaveBayes
+
+```{r}
+tibble(
+    Actual = df_test %>% pull(label),
+    Pred = pred
+) %>% 
+    yardstick::f_meas(Actual, Pred)
+
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+### Predict on submission file
+pred_submission <- NBclassifier %>% 
+    predict(newdata = test_sub_small) %>% 
+    enframe(name = "id", value = "predicted")
+
+dim(df_submission)[1] == dim(pred_submission)[1]
+
+df_submission %>% 
+    bind_cols(pred_submission) %>% 
+    as_tibble() %>% 
+    select(1, 4) #%>% 
+    #write_csv("submit_file2.csv")
+
+```
+
+## Randomforest model
+
+```{r, ranger}
+library(tibble)
+
+X <- as.matrix(train_small) %>% as_tibble()
+y <- as.matrix(df_train$label) %>% as.data.frame() %>% as_tibble()
+all <- cbind(X, y)
+mod_data <- purrr::set_names(all, paste0("V", 1:ncol(all)))
+
+X_test <- as.matrix(test_small) %>% as_tibble()
+y_test <- as.matrix(df_test$label) %>% as.data.frame() %>% as_tibble()
+all_test <- cbind(X_test, y_test)
+mod_test <- purrr::set_names(all_test, paste0("V", 1:ncol(all_test)))
+
+
+rangmod <- ranger::ranger(V4756 ~ ., data = mod_data)
+#saveRDS(rangmod, "rangmod.rds")
+```
+
+### Confusion Matrix - RandomForest
+```{r, ranger_conf_mat}
+rang_pred <- rangmod %>% predict(mod_test)
+confusionMatrix(rang_pred$predictions, y_test$V1)
+
+```
+
+### F1 Score - RandomForest
+```{r}
+
+tibble(
+    Actual = y_test %>% pull(V1),
+    pred = rang_pred$predictions
+) %>% 
+    yardstick::f_meas(Actual, pred)
+
+
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+### Predict on submission file
+
+X_sub <- as.matrix(test_sub_small) %>% as_tibble()
+mod_sub <- purrr::set_names(X_sub, paste0("V", 1:ncol(X_sub)))
+
+rang_submission <- rangmod %>% 
+    predict(mod_sub) 
+
+rang_submission <- enframe(rang_submission$predictions, name = "id", value = "predicted")
+
+dim(df_submission)[1] == dim(rang_submission)[1]
+
+df_submission %>% 
+    bind_cols(rang_submission) %>% 
+    as_tibble() %>% 
+    select(1, 4) %>% 
+    count(predicted)
+
+```
