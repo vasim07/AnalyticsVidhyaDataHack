@@ -3,18 +3,6 @@
 
 The objective of this task is to detect hate speech in tweets. For the sake of simplicity, we say a tweet contains hate speech if it has a racist or sexist sentiment associated with it. So, the task is to classify racist or sexist tweets from other tweets.
 
-## Analytic problem framing
-
-The problem involves analyzing textual information. Such problems are solved using Natural Language Programming (NLP) approach.
-
-The problem can be solved using machine learning techniques such as Naive Bayes algorithm, Bagging or boosting method.
-
-In this analysis we use Naive Bayes and RandomForest, a bagging technique.
-
-## Data
-
-A series of tweets are shared in csv file.
-
 ## Analysis/ Methodology/ Approach
 
 ### Create Corpus
@@ -98,17 +86,3 @@ Random Forests work by training many Decision Trees on random subsets of the fea
 |.metric | .estimate|
 |:-------|---------:|
 |f_meas  | 93.62844 |
-
-## Deployment and Maintainance
-
-### Deployment
-
-The model can be deployed as an API.  
-
-The advantage of using a API is that the model can be used by any software - python's flask app, html webpage, Java application to name a few. By creating an API, we empower our model to be leveraged by other services.  
-
-With the help of [`plumber`](https://www.rplumber.io/) and docker we can easily convert our model into a REST API.
-
-### Maintainance
-
-Once deployed, the whole system needs proper monitoring and maintenance. 
